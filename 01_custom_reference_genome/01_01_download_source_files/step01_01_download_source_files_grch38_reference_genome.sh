@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Create the reference_sources folder for the source files
-source="/gladstone/bioinformatics/projects/lz-1266-lana-zholudeva-deepak-srivastava-scrnaseq-hg38-jan-2022/assets/reference_genomes_intermediate_files/grch38_reference_sources"
+source="/gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/assets/reference_genomes_intermediate_files/grch38_reference_sources"
 mkdir -p "$source"
 
 #specify the source files to be downloaded

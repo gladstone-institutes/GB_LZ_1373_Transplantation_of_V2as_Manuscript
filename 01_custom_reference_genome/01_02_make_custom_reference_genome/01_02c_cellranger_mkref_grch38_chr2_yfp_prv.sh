@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #genome metadata
-genome="refdata-lz-1266-grch38-chr2-yfp-prv"
+genome="refdata-lz-1373-grch38-chr2-yfp-prv"
 version="2022-A"
 
 #paths
-build_dir=/gladstone/bioinformatics/projects/lz-1266-lana-zholudeva-deepak-srivastava-scrnaseq-hg38-jan-2022/assets/reference_genomes_intermediate_files/refdata-lz-1266-grch38-chr2-yfp-prv-2022-A_build
-output_dir=/gladstone/bioinformatics/projects/lz-1266-lana-zholudeva-deepak-srivastava-scrnaseq-hg38-jan-2022/assets/reference_genomes
+build_dir=/gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/assets/reference_genomes_intermediate_files/refdata-lz-1373-grch38-chr2-yfp-prv-2022-A_build
+output_dir=/gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/assets/reference_genomes
 mkdir -p "$output_dir"
 
 #input files

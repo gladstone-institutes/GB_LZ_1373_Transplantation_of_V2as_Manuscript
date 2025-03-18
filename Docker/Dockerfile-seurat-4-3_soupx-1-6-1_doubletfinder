@@ -1,0 +1,60 @@
+FROM bioconductor/bioconductor_docker:RELEASE_3_16
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+USER root
+
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+    cmake \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN Rscript -e 'install.packages("lme4")'
+RUN Rscript -e 'install.packages(c("optparse", "remotes"))'
+RUN Rscript -e 'install.packages(c("foreach","doParallel","HGNChelper","openxlsx"))'
+RUN Rscript -e 'install.packages(c("tidyverse"))'
+RUN Rscript -e 'remotes::install_github("spatstat/spatstat.core")'
+RUN Rscript -e 'remotes::install_github("cran/Seurat", ref = "4.3.0")'
+RUN Rscript -e 'install.packages("ranger")'
+RUN Rscript -e 'install.packages("BiocManager")'
+RUN Rscript -e 'remotes::install_github("cran/Matrix", ref = "1.5-3")'
+RUN Rscript -e 'BiocManager::install("glmGamPoi")'
+RUN Rscript -e 'install.packages("ggpubr")'
+RUN Rscript -e 'install.packages("hdf5r")'
+RUN Rscript -e 'remotes::install_github("cran/SoupX", ref = "1.6.1")'
+RUN Rscript -e 'install.packages("pheatmap")'
+
+# Pin DoubletFinder version using the most recent commit
+RUN Rscript -e 'remotes::install_github("chris-mcginnis-ucsf/DoubletFinder@67fb8b5808eb16167ead5f9b439677cc24837554")'
+
+# Install scCustomize to compare cellbender output to input matrices
+RUN Rscript -e 'install.packages("scCustomize")'
+
+# Install harmony for batch correction
+RUN Rscript -e 'install.packages("harmony")'
+
+# Check if installs worked
+RUN Rscript -e 'lapply(c("SoupX","DoubletFinder","harmony","hdf5r","scCustomize"), library, character.only = TRUE)'
+RUN Rscript -e 'lapply(c("optparse", "remotes", "ggpubr", "ranger", "glmGamPoi"), library, character.only = TRUE)'
+RUN Rscript -e 'lapply(c("foreach","doParallel","HGNChelper","openxlsx","Seurat","pheatmap"), library, character.only = TRUE)'
+
+
+WORKDIR /opt
+
+# Install ScType from github.
+# It is not organized like a typical R package so will need to run source
+# on the files in the following directory /opt/sc-type/
+RUN git clone https://github.com/IanevskiAleksandr/sc-type.git
+
+# Run container as non-root
+RUN groupadd -g 10001 notroot && \
+   useradd -u 10000 -g notroot notroot 
+
+USER notroot:notroot
+
+CMD ["/bin/bash"]
+
+# Copy dockerfile into the image
+COPY Dockerfile /Dockerfile

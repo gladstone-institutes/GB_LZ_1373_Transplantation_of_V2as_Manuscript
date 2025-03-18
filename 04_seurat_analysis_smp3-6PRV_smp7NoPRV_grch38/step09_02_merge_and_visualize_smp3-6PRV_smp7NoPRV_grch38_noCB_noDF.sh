@@ -16,9 +16,9 @@ export APPTAINER_BINDPATH="$base_dir"
 
 apptainer exec $container_dir/seurat-4-3_soupx-1-6-1_doubletfinder_67fb8b5.sif Rscript \
 $script_dir/09_02_merge_and_visualize.R \
---input_dir $base_dir/results/09_seurat_analysis_smp3-6PRV_smp7NoPRV_grch38_noCB_noDF/06_qc_no_CB_no_DF_HumanCells \
---output_dir $base_dir/results/09_seurat_analysis_smp3-6PRV_smp7NoPRV_grch38_noCB_noDF/14_merge_and_visualize_no_CB_no_DF_HumanCells_NoPRV \
---output_prefix "smp3-7_grch38_noCB_noDF_HumanCells_NoPRV" \
+--input_dir $base_dir/results/09_seurat_analysis_smp3-6PRV_smp7NoPRV_grch38_noCB_noDF/01_qc_no_cellbender_no_doubletfinder \
+--output_dir $base_dir/results/09_seurat_analysis_smp3-6PRV_smp7NoPRV_grch38_noCB_noDF/02_merge_and_visualize_no_cellbender_no_doubletfinder \
+--output_prefix "smp3-6PRV_smp7NoPRV_grch38_noCB_noDF" \
 --project "LZ_1373" \
 --npcs 20
   
@@ -26,4 +26,3 @@ $script_dir/09_02_merge_and_visualize.R \
 [[ -n "$JOB_ID" ]] && qstat -j "$JOB_ID"
   
 ################### END ###################
-

@@ -2,13 +2,13 @@
 
 ###############################################################################
 ## Project ID: GB-LZ-1373
-## Authors: Reuben Thomas, Natalie Elphick, Ayushi Agrawal
+## Authors: Ayushi Agrawal
 ##
 ## Script Goal: Normalize using SCTransform, use input PCA dim and resolution
 ## to cluster cells and use ScType to assign cell types to the clusters.
 ##
 ## Usage example:
-## Rscript 09_04_clustering_cell_type.R
+## Rscript 10_02_subclustering_cell_type.R
 ##  --input 'input_seurat_object.RDS' \  # Input Seurat object 
 ##  --output '/output_directory' \       # Location for output files
 ##  --output_prefix "outputs_scRNA_" \   # Prefix for output files
@@ -18,7 +18,7 @@
 ##  --batch_var \                        # Batch variable for Harmony correction
 ##  --custom_db "custom_db.xlsx"         # Path to custom database for ScType
 ##
-## Run "Rscript 09_04_clustering_cell_type.R --help" for more information
+## Run "Rscript 10_02_subclustering_cell_type.R --help" for more information
 ###############################################################################
 
 # Get input arguments -----------------------------------------------------
@@ -90,7 +90,7 @@ set.seed(42)
 
 #increase RAM usage so the futurized Seurat functions... 
 #can access larger global variables
-options(future.globals.maxSize = 8000 * 1024^2)
+options(future.globals.maxSize = 4000 * 1024^2)
 
 
 # Cluster using optimized resolution --------------------------------------
@@ -102,7 +102,7 @@ data <- readRDS(opt$input)
 DefaultAssay(data) <- "RNA"
 assays_present <- Assays(data)
 assays_keep <- setdiff(assays_present, "SCT")
-data <- DietSeurat(data,assay = assays_keep)
+data <- DietSeurat(data, assay = assays_keep)
 
 if(!is.na(opt$remove_cluster)){
   print(table(data$seurat_clusters))
@@ -234,7 +234,37 @@ saveRDS(data,
         )
 )
 
-# get the metadata columns that not numeric
+
+
+
+# cells per sample per cluster -------------------------------------------------
+smp_cluster_counts <- unique(data@meta.data %>%
+              group_by(sample_name) %>%
+              mutate(total_numbers_of_cells_per_sample = n()) %>%
+              group_by(seurat_clusters, .add=TRUE) %>%
+              mutate(number_of_cells_per_sample_in_cluster = n(), 
+                     proportion=
+                       number_of_cells_per_sample_in_cluster/total_numbers_of_cells_per_sample) %>%
+              select(sample_name,
+                     library_prep_batch,
+                     seurat_clusters,
+                     total_numbers_of_cells_per_sample,
+                     number_of_cells_per_sample_in_cluster, 
+                     proportion))
+
+pdf(file.path(opt$output, paste0(opt$output_prefix, "_proportion_of_cells_per_sample_cluster.pdf")),
+    width = 25,
+    height = 7)
+print(ggplot(smp_cluster_counts, aes(x=seurat_clusters, y = round(proportion*100,1), fill = sample_name)) + 
+        geom_bar(stat="identity", position = position_dodge(width = 0.8), width = 0.6, color = "black")+
+        labs(x = "Seurat Cluster", y = "Cell Proportion", fill = "Sample") +
+        theme_bw())
+dev.off()
+
+
+
+
+# Visualize the metadata columns that not numeric ------------------------------
 meta_cols <- names(data@meta.data)[!sapply(data@meta.data, is.numeric)]
 # Exclude "orig.ident"
 meta_cols <- meta_cols[meta_cols != "orig.ident"]
@@ -274,6 +304,26 @@ for (meta in meta_cols) {
   ) + NoLegend())
   dev.off()
   
+}
+
+
+
+
+# Visualize the metadata columns that are numeric ------------------------------
+# Feature plots for numeric data
+for(meta_feature in c("nCount_RNA","nFeature_RNA","percent.mt","percent.ribo","nCount_SCT","nFeature_SCT",
+                      grep("^SCT_norm_expr", colnames(data@meta.data), value = TRUE))){
+  FeaturePlot(data,
+              raster = FALSE,
+              order = TRUE,
+              label = FALSE,
+              features = meta_feature,
+              reduction = "umap") %>%
+    ggsave(file = file.path(opt$output,
+                            paste0(opt$output_prefix, "_", meta_feature, "_featureplot.pdf")),
+           plot = .,
+           width = 12,
+           height = 7)
 }
 
 
@@ -334,7 +384,6 @@ writeLines(
   file.path(opt$output, "sessionInfo.txt")
 )
 print("***** Script Complete *****")
-
 
 
 # END -----------------------------------------------------------

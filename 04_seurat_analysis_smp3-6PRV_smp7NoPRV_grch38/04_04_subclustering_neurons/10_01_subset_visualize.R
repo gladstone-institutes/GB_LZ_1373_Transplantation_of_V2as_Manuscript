@@ -1,109 +1,115 @@
 #!/usr/bin/env Rscript
-#####################################################################################################
+
+###############################################################################
 ## Project ID: GB-LZ-1373
 ## Authors: Ayushi Agrawal
 ##
-## Script Goal: Merge and normalize all Seurat objects; and visualize metadata for batch effects
+## Script Goal: Subset the snRNA-seq RDS object for select select clusters and
+##          visualize in UMAP space to check for batch effects.
 ##
 ## Usage example:
-## Rscript 07_02ab_seurat_merge_and_visualize_samples_3-6_grch38_no_cellbender_no_doubletfinder.R \
-## --input_dir 01_qc/ \                                           # Directory containing the QC filtered Seurat objects
-## --output_dir 02_merge_and_visualize \                          # Output directory
-## --output_prefix "samples_3-6_grch38" \                         # Prefix for all output data and files
-## --project "LZ_1373" \                                          # Project ID
-## --exclude_samples LZ4087_07A_human.rds,LZ4087_07B_human.rds \  # Comma separated list of samples to exclude (optional)
-## --npcs 15                                                      # Number of PCs to use for UMAP (optional)
-## 
-## Run "Rscript 07_02ab_seurat_merge_and_visualize_samples_3-6_grch38_no_cellbender_no_doubletfinder.R --help" for more information
-#####################################################################################################
+## Rscript 10_01_subset_visualize.R
+##  --input_processed 'seurat_object.RDS' \  # Input Seurat object 
+##  --output '/output_directory' \           # Location for output files
+##  --output_prefix "outputs_scRNA_" \       # Prefix for output files
+##  --npcs 20 \                              # Number of PCs to use
+##  --cluster_subset "2,3"                   # Cluster(s) to subset and run clustering for
+##  --gene_subset "RBFOX3"                   # Gene >0 exp to subset and run clustering for
+##
+## Run "Rscript 10_01_subset_visualize.R --help" for more information
+###############################################################################
 
-# Get input arguments -------------------------------------------------------------------------------
+# Get input arguments -----------------------------------------------------
 library(optparse)
 option_list <- list(
-  make_option("--input_dir",
+  make_option("--input_processed",
               action = "store", default = NA, type = "character",
-              help = "Input directory (required)"
+              help = "Input Seurat object post clustering in RDS format (required)"
+  ),
+  make_option("--input_orig",
+              action = "store", default = NA, type = "character",
+              help = "Merged Seurat object with no processing in RDS format (required)"
   ),
   make_option("--output_dir",
               action = "store", default = NA, type = "character",
               help = "Output directory (required)"
   ),
   make_option("--output_prefix",
-              action = "store", default = NA, type = "character",
-              help = "Prefix for all output data and files (required)"
+              action = "store", default = "seurat_subset", type = "character",
+              help = "Prefix for all output data and files (optional)"
   ),
-  make_option("--project",
-              action = "store", default = NA, type = "character",
-              help = "Project ID for the Seurat objects (required)"
+  make_option(c("-n", "--npcs"),
+              action = "store", default = NA, type = "numeric",
+              help = "Number of principal components to use (required)"
   ),
-  make_option("--exclude_samples",
+  make_option(c("--cluster_subset"),
               action = "store", default = NA, type = "character",
-              help = "Comma separated list of samples to exclude, the sample names should match the RDS file names (optional)"
+              help = "The input will be subset by these seurat clusters (required)"
   ),
-  make_option("--npcs",
-              action = "store", default = 20, type = "integer",
-              help = "Number of PCs to use for UMAP, default is 20 (optional)"
+  make_option(c("--gene_subset"),
+              action = "store", default = NA, type = "character",
+              help = "The input will be subset by the cells with >0 exp of this gene. (optional)"
   )
 )
-# Read in the arguments
+
 opt <- parse_args(OptionParser(option_list = option_list))
 
-# Check that all required arguments are present
-if (is.na(opt$input_dir) | is.na(opt$output_dir) | is.na(opt$output_prefix) | is.na(opt$project)) {
-  stop("***** ERROR: Missing required arguments! *****")
+# Check if required args are provided
+if (is.na(opt$input_processed) | is.na(opt$input_orig) | is.na(opt$output_dir) | is.na(opt$npcs) | is.na(opt$cluster_subset)) {
+  stop("Missing one or more required arguments")
 }
 
 
-# Load required packages
-library(Seurat)
+
+
+# Load required packages --------------------------------------------------
 library(dplyr)
+library(Seurat)
+library(HGNChelper)
+library(openxlsx)
+library(magrittr)
 library(ggplot2)
+library(readr)
 
-# Set the working directory
-setwd(opt$input_dir)
-
-# Create the output directory if it doesn't exist
-if (!dir.exists(opt$output_dir)) {
-  dir.create(opt$output_dir, recursive = TRUE)
+# create the results folders
+if (!(dir.exists(opt$output_dir))) {
+  dir.create(opt$output_dir,recursive = TRUE)
 }
 
+#set seed
+set.seed(42)
+
+#increase RAM usage so the futurized Seurat functions... 
+#can access larger global variables
+options(future.globals.maxSize = 4000 * 1024^2)
 
 
 
-# Merge the data into a single Seurat object --------------------------------------------------------------
-# Read in all the sample data sets
-samples_list <- list.files(".", pattern = "\\.rds$", full.names = TRUE, recursive=TRUE)
 
-# If the exclude_samples argument is provided, remove these samples from the samples_list
-if (!is.na(opt$exclude_samples)) {
-  temp <- strsplit(as.character(opt$exclude_samples), ',')
-  exclude_samples <- as.character(unlist(temp))
-  print(exclude_samples)
-  samples_list <- samples_list[!(basename(samples_list) %in% exclude_samples)]
-  rm(temp)
+# Sub clustering using optimized resolution --------------------------------------
+
+# Read in the Seurat object
+data <- readRDS(opt$input_processed)
+Idents(data) <- data$seurat_clusters
+print("Seurat clusters for all data: ")
+print(table(data$seurat_clusters))
+
+# Read in unprocessed merged data
+data_orig <- readRDS(opt$input_orig)
+
+# Subset the Seurat object to include only the seurat clusters provided
+temp <- strsplit(as.character(opt$cluster_subset), ',')
+cell_type_clusters <- as.numeric(as.character(unlist(temp)))
+cells_to_subcluster <- WhichCells(data, idents = cell_type_clusters)
+data <- subset(x = data_orig, cells = cells_to_subcluster)
+rm(data_orig, temp, cell_type_clusters, cells_to_subcluster)
+
+if(!is.na(opt$gene_subset)){
+  expr <- FetchData(object = data, vars = opt$gene_subset)
+  data <- data[, which(x = rowSums(expr) > 0)]
 }
 
-sample_names <-  gsub(pattern = "\\.rds$", replacement = "", x = basename(samples_list))
-
-data_list <- lapply(samples_list, readRDS)
-names(data_list) <- sample_names 
-
-# Merge all the data sets
-data <- merge(data_list[[1]], 
-              y = unlist(data_list[2:length(data_list)]), 
-              add.cell.ids = sample_names,
-              project = opt$project, 
-              merge.data = FALSE)
-
-rm(samples_list, sample_names, data_list)
-
-# Save the processed dataset
-saveRDS(data, 
-        file = file.path(opt$output_dir, 
-                         paste0(opt$output_prefix, 
-                                "_merged_data.rds")))
-
-print("***** Dataset merge completed! *****")
+print("***** Subsetting completed! *****")
 
 
 
@@ -130,10 +136,10 @@ if (length(remove_genes) > 0) {
   print("Expression matrix")
   print(dim(expression_matrix))
   print(head(expression_matrix))
-
+  
   # Convert sparse matrix to a dense matrix
   expression_matrix <- as.matrix(expression_matrix)
-
+  
   # Convert to a data frame and transpose so cells are rows
   expression_metadata <- as.data.frame(t(expression_matrix))
   
@@ -142,9 +148,9 @@ if (length(remove_genes) > 0) {
   
   # Add the expression values to metadata
   data <- AddMetaData(data, metadata = expression_metadata)
-
+  
   print(head(data@meta.data))
-
+  
 } else {
   print("None of the remove_genes are present in the dataset.")
 }
@@ -169,14 +175,14 @@ print(data)
 saveRDS(data, 
         file = file.path(opt$output_dir, 
                          paste0(opt$output_prefix, 
-                                "_merged_data_sct_pca_umap.rds")))
+                                "_data_sct_pca_umap.rds")))
 print("***** SCT normalization, PCA and UMAP completed! *****")
 
 
 
 
 # Visualize the data ------------------------------------------------------------------------------------
-# PCA plots
+# PCA plot
 pdf(file = file.path(opt$output_dir, paste0(opt$output_prefix, "_PCA_plots.pdf")),
     width = 12, height = 7)
 print(ElbowPlot(data, ndims = 50))
@@ -187,21 +193,21 @@ print(DimHeatmap(data, dims = 1:2, cells = 500, balanced = TRUE))
 print(DimHeatmap(data, dims = 3:4, cells = 500, balanced = TRUE))
 dev.off()
 
+# # Quantitative approach to identify PCA plot elbow
+# # Reference: https://hbctraining.github.io/scRNA-seq/lessons/elbow_plot_metric.html
+# # Determine percent of variation associated with each PC
+# pct <- data[["pca"]]@stdev / sum(data[["pca"]]@stdev) * 100
+# # Calculate cumulative percents for each PC
+# cumu <- cumsum(pct)
+# # Determine which PC exhibits cumulative percent greater than 90% and % variation 
+# # associated with the PC as less than 5
+# co1 <- which(cumu > 90 & pct < 5)[1]
+# # Determine the difference between variation of PC and subsequent PC
+# co2 <- sort(which((pct[1:length(pct) - 1] - pct[2:length(pct)]) > 0.1), decreasing = T)[1] + 1
+# # Minimum of the two calculation
+# pcs <- min(co1, co2)
+# print(paste0(pcs+1, " PCs are recommended for this data using quantitative approach."))
 
-# Quantitative approach to identify PCA plot elbow
-# Reference: https://hbctraining.github.io/scRNA-seq/lessons/elbow_plot_metric.html
-# Determine percent of variation associated with each PC
-pct <- data[["pca"]]@stdev / sum(data[["pca"]]@stdev) * 100
-# Calculate cumulative percents for each PC
-cumu <- cumsum(pct)
-# Determine which PC exhibits cumulative percent greater than 90% and % variation 
-# associated with the PC as less than 5
-co1 <- which(cumu > 90 & pct < 5)[1]
-# Determine the difference between variation of PC and subsequent PC
-co2 <- sort(which((pct[1:length(pct) - 1] - pct[2:length(pct)]) > 0.1), decreasing = T)[1] + 1
-# Minimum of the two calculation
-pcs <- min(co1, co2)
-print(paste0("***** ", pcs+1, " PCs are recommended for this data using quantitative approach."))
 
 
 # Function to generate visualizations for the metadata variables
@@ -250,13 +256,11 @@ data@meta.data[meta_cols] <- lapply(data@meta.data[meta_cols], as.factor)
 lapply(meta_cols, function(col_name) {
   plot_metadata(data, col_name)
 })
-  
+
 
 # Feature plots for numeric data
 for(meta_feature in c("nCount_RNA","nFeature_RNA","percent.mt","percent.ribo","nCount_SCT","nFeature_SCT",
-                      "SCT_norm_expr_ChR2.H134R.", "SCT_norm_expr_mRFP1", "SCT_norm_expr_UL25", 
-                      "SCT_norm_expr_UL21", "SCT_norm_expr_UL19", "SCT_norm_expr_UL18", 
-                      "SCT_norm_expr_UL15", "SCT_norm_expr_YFP", "SCT_norm_expr_UL20")){
+                      grep("^SCT_norm_expr", colnames(data@meta.data), value = TRUE))){
   FeaturePlot(data, 
               raster = FALSE, 
               order = TRUE, 
@@ -272,13 +276,13 @@ for(meta_feature in c("nCount_RNA","nFeature_RNA","percent.mt","percent.ribo","n
 
 
 
+# Write session info
+writeLines(
+  capture.output(sessionInfo()),
+  file.path(opt$output_dir, "sessionInfo.txt")
+)
+print("***** Script Complete *****")
 
-# save the session info
-writeLines(capture.output(sessionInfo()), 
-           file.path(opt$output_dir, "sessionInfo_merge_and_visualize_no_CB_no_DF_HumanCells_NoPRV.txt"))
-
-# record logs
-print("***** Visualization completed! *****")
 
 
-########################## END ##########################  
+# END -----------------------------------------------------------

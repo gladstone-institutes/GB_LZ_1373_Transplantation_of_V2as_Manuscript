@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set up source directories
-source="/gladstone/bioinformatics/projects/lz-1266-lana-zholudeva-deepak-srivastava-scrnaseq-hg38-jan-2022/assets/reference_genomes_intermediate_files/grch38_reference_sources"
+source="/gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/assets/reference_genomes_intermediate_files/grch38_reference_sources"
 
 
 # Check if the source files exist in grch38_reference_sources/ folder
