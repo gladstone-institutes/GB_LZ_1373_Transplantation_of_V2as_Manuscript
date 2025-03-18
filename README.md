@@ -22,7 +22,7 @@ GB_LZ_1373/
 │── assets  
 │── tmp  
 │── scripts/  
-│   ├── GB_LZ_1373_Transplantation_of_V2as_Manuscript  
+│&emsp;&emsp;│── GB_LZ_1373_Transplantation_of_V2as_Manuscript  
  
 ## References
 1. https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/what-is-cell-ranger
