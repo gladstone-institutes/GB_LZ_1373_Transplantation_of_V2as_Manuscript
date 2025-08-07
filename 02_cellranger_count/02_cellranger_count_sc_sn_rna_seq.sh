@@ -30,7 +30,7 @@
 
 #setup paths
 base_dir=/gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023
-container_dir=$base_dir/assets/containers
+container_dir=$base_dir/assets
 export SINGULARITY_BINDPATH="$base_dir"
 
 #assign the argument values to variables
