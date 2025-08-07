@@ -24,7 +24,7 @@
 ##
 ## Example running this script on wynton:
 ##    qsub cellranger_count_sc_sn_rna_seq.sh \
-##	  Sample1A data/fastq_files Sample1A assets/refdata-lz-1266-mRatBN7-chr2-yfp-prv \
+##	  Sample1A data/fastq_files Sample1A assets/refdata-lz-1373-mRatBN7-chr2-yfp-prv \
 ##	  True results/01_cellranger_count
 ###############################################################################
 

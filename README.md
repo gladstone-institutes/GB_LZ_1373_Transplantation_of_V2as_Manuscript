@@ -23,6 +23,8 @@ GB_LZ_1373/
 │── tmp  
 │── scripts/  
 │&emsp;&emsp;│── GB_LZ_1373_Transplantation_of_V2as_Manuscript  
+
+Note: The analysis was performed on an SGE HPC and all the Docker files were used to create docker containers and these were then used to create singularity containers that are preferred on HPC. 
  
 ## References
 1. https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/what-is-cell-ranger

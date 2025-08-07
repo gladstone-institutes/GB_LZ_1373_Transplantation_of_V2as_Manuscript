@@ -1,0 +1,10 @@
+ChR2(H134R)	unknown	exon	1	927	.	+	.	gene_id "ChR2(H134R)"; transcript_id "ChR2(H134R)"; gene_name "ChR2(H134R)"; gene_biotype "protein_coding";
+mRFP1	unknown	exon	1	678	.	+	.	gene_id "mRFP1"; transcript_id "mRFP1"; gene_name "mRFP1"; gene_biotype "protein_coding";
+UL25	unknown	exon	1	3312	.	-	.	gene_id "UL25"; transcript_id "UL25"; gene_name "UL25"; gene_biotype "protein_coding";
+UL21	Genbank	exon	1	1578	.	-	0	gene_id "UL21"; transcript_id "UL21"; gene_name "UL21"; gene_biotype "protein_coding";
+UL20	Genbank	exon	1	486	.	+	0	gene_id "UL20"; transcript_id "UL20"; gene_name "UL20"; gene_biotype "protein_coding";
+UL19	Genbank	exon	1	3993	.	+	0	gene_id "UL19"; transcript_id "UL19"; gene_name "UL19"; gene_biotype "protein_coding";
+UL18	Genbank	exon	1	888	.	+	0	gene_id "UL18"; transcript_id "UL18"; gene_name "UL18"; gene_biotype "protein_coding";
+UL15	Genbank	exon	1	1134	.	-	2	gene_id "UL15"; transcript_id "UL15"; gene_name "UL15"; gene_biotype "protein_coding";
+YFP	unknown	exon	1	720	.	+	.	gene_id "YFP"; transcript_id "YFP"; gene_name "YFP"; gene_biotype "protein_coding";
+

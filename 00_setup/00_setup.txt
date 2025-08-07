@@ -1,0 +1,76 @@
+# ==============================================================================
+# UCSF Wynton HPC Setup Instructions for GB_LZ_1373_Transplantation_of_V2as Manuscript
+# ==============================================================================
+
+# NOTE: These setup instructions are specific to the UCSF Gladstone/Wynton HPC cluster.
+# If you are not affiliated with UCSF or do not have access to Wynton, these instructions
+# will not be directly applicable.
+
+# Make sure you are either on-site at Gladstone/UCSF or are VPN'ed in using Pulse Secure.
+# - If you are on a Mac, open the "Terminal" app.
+# - If you are on a Windows machine, open "Command Prompt" from the Start menu.
+
+# Once the terminal or command prompt is open, copy and paste the following commands
+# to set up your project folders and environment.
+
+
+# ==============================================================================
+# Step 1: Log in to Wynton
+# ==============================================================================
+# Replace `alice` with your Wynton username.
+ssh alice@log1.wynton.ucsf.edu
+
+
+# ==============================================================================
+# Step 2: Create a new folder and subfolders for the project
+# ==============================================================================
+cd /gladstone/bioinformatics/projects/
+mkdir lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023
+mkdir lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/data
+mkdir lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/results
+mkdir lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/scripts
+mkdir lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/tmp
+mkdir -p lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/assets
+
+# The `assets` folder will contain shared resources like singularity containers.
+
+
+# ==============================================================================
+# Step 3: Transfer FASTQ files to the data folder
+# ==============================================================================
+# Transfer your sequencing data (e.g. FASTQ files) to the following location:
+# /gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/data/
+
+# Use appropriate tools (e.g. SFTP, rsync, Globus) as per your access setup.
+
+
+# ==============================================================================
+# Step 4: Clone this repo and build Singularity containers
+# ==============================================================================
+# Log into a development node for container building
+ssh dev3
+
+# Change directory to where scripts are stored
+cd /gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/scripts
+
+# Clone the public GitHub repository that contains the Dockerfiles
+git clone https://github.com/gladstone-institutes/GB_LZ_1373_Transplantation_of_V2as_Manuscript.git
+
+# Build Singularity container for cellranger directly from DockerHub
+cd /gladstone/bioinformatics/projects/lz-1373-lana-zholudeva-deepak-srivastava-scrnaseq-snrnaseq-hg38-may-2023/assets
+singularity build cellranger-v6.1.1.sif docker://litd/docker-cellranger:v6.1.1
+
+# Build Singularity containers from Dockerfiles in this repository
+# All Dockerfiles are located in the `Docker/` directory of the repository.
+
+
+# Exit development node to return to login node
+# This 'exit' command logs you out of the dev3 node and back to the main Wynton login node.
+exit
+
+# Exit login node to end your session on Wynton
+# This 'exit' command logs you out from the Wynton cluster entirely and closes your SSH session.
+exit
+
+
+# END OF SETUP
