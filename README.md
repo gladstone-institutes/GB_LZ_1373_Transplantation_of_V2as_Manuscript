@@ -1,5 +1,18 @@
+[![DOI](https://zenodo.org/badge/925011615.svg)](https://doi.org/10.5281/zenodo.19070121)
+
 # GB_LZ_1373_Transplantation_of_V2as_Manuscript
-Code for analysis of single-cell/nuclei RNA-seq data in the Transplantation of V2as Manuscript (with Lana Zholudeva et al.) 
+Code for analysis of single-cell/nuclei RNA-seq data in the Transplantation of V2as Manuscript
+
+**Title:** _Human spinal interneurons repair the injured spinal cord through synaptic integration_
+
+**Authors:** Lyandysha V. Zholudeva1*, Ayushi Agrawal2, Tara Fortino3,4, Patrick Hurley1, Wesley Kwong1, Angelo Pelonero1, Olaia F. Vila1, Maggie Williams3,4, Todd McDevitt1, Michael A. Lane3,4, Deepak Srivastava1,5*  
+
+**Affiliations:**  
+    1 Gladstone Institutes; San Francisco, CA, USA, 94158  
+    2 Institute of Data Science and Biotechnology, Gladstone Institutes; San Francisco, CA, USA, 94158  
+    3 Department of Neurobiology & Anatomy, Drexel University College of Medicine; Philadelphia, PA, USA, 19129  
+    4 Marion Murray Spinal Cord Research Center, Drexel University College of Medicine; Philadelphia, PA, USA, 19129  
+    5 University of California, San Francisco, San Francisco, CA, USA, 94158  
 
 ## Researchers
 - Lana Zholudeva
